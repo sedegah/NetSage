@@ -60,9 +60,17 @@ python netsage_cli.py --facts
 # interactive run for a single goal (supports typing "why")
 python netsage_cli.py --goal no_internet
 
+# list all available end goals
+python netsage_cli.py --list-goals
+
+# run a different end goal
+python netsage_cli.py --goal dns_failure
+
 # web form mode (no input() prompts)
 python netsage_cli.py --web --host 127.0.0.1 --port 8000
 ```
+
+In web mode, you can choose the end goal from the **Primary Goal** dropdown.
 
 ## Web Interface Commands
 

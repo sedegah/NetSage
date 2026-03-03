@@ -391,49 +391,59 @@ def _render_web_form(
             "</article>"
         )
 
+    goal_options: list[str] = []
+    available_goals = [str(item) for item in system.kb.get("goals", [])]
+    for candidate in available_goals:
+        selected = " selected" if candidate == goal else ""
+        goal_options.append(f"<option value='{escape(candidate)}'{selected}>{escape(candidate)}</option>")
+
+    if goal and goal not in available_goals:
+        goal_options.append(f"<option value='{escape(goal)}' selected>{escape(goal)} (custom)</option>")
+
     return (
         "<html><head><title>NetSage Web</title>"
         "<style>"
+        ":root{--bg:#07090d;--panel:rgba(255,255,255,.04);--line:rgba(255,255,255,.14);--text:#f5f7ff;--muted:#a6adbb;--accent:#77f7d1;--accent-2:#86a9ff;}"
         "*{box-sizing:border-box;}"
-        "body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(145deg,#0f172a,#111827);color:#e5e7eb;}"
-        ".container{max-width:1100px;margin:28px auto;padding:0 18px;}"
-        ".panel{background:#111827;border:1px solid #1f2937;border-radius:16px;box-shadow:0 16px 30px rgba(0,0,0,.25);padding:22px;}"
-        ".header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;}"
-        ".title{margin:0;font-size:1.8rem;color:#f9fafb;}"
-        ".subtitle{margin:6px 0 0;color:#9ca3af;}"
-        ".pill{background:#1d4ed8;color:#dbeafe;border-radius:999px;padding:8px 12px;font-size:.85rem;white-space:nowrap;}"
-        ".goal-wrap{margin:14px 0 18px;}"
-        ".goal-label{display:block;font-weight:600;margin-bottom:8px;color:#cbd5e1;}"
-        ".control{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #374151;background:#0b1220;color:#f3f4f6;outline:none;}"
-        ".control:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.2);}"
-        ".facts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;}"
-        ".fact-card{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px;}"
-        ".fact-label{display:block;font-weight:600;font-size:.95rem;margin-bottom:8px;color:#e2e8f0;}"
-        ".fact-help{margin:8px 0 0;font-size:.82rem;color:#94a3b8;line-height:1.35;}"
-        ".actions{margin-top:16px;display:flex;gap:10px;align-items:center;}"
-        ".btn{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;background:#2563eb;color:white;}"
-        ".btn:hover{background:#1d4ed8;}"
-        ".hint{font-size:.85rem;color:#94a3b8;}"
-        ".result{margin-top:18px;padding-top:16px;border-top:1px solid #1f2937;}"
-        ".result-title{margin:0 0 10px;color:#f8fafc;}"
-        ".score{display:inline-block;border-radius:10px;background:#064e3b;color:#d1fae5;padding:4px 8px;margin-left:8px;font-size:.9rem;}"
-        ".result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;}"
-        ".card{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:12px;}"
-        ".card h3{margin:0 0 8px;color:#e2e8f0;font-size:1rem;}"
-        ".list{margin:0;padding-left:18px;color:#cbd5e1;}"
-        ".list li{margin-bottom:6px;line-height:1.35;}"
-        "</style></head><body><main class='container'><section class='panel'>"
-        "<header class='header'><div><h1 class='title'>NetSage Diagnosis</h1>"
-        "<p class='subtitle'>Enter known values and leave unknowns blank.</p></div>"
-        "<span class='pill'>LAN + WAN Expert System</span></header>"
+        "body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:radial-gradient(60rem 30rem at 10% -10%,rgba(134,169,255,.20),transparent 55%),radial-gradient(50rem 30rem at 95% -5%,rgba(119,247,209,.20),transparent 50%),var(--bg);padding:32px 18px;}"
+        ".shell{max-width:1100px;margin:0 auto;}"
+        ".hero{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.45);}"
+        ".badge{width:fit-content;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:rgba(119,247,209,.10);border:1px solid rgba(119,247,209,.25);border-radius:999px;padding:6px 10px;margin-bottom:14px;}"
+        "h1{margin:0 0 8px;font-size:clamp(1.6rem,3.8vw,2.5rem);line-height:1.08;letter-spacing:-.02em;}"
+        ".lead{margin:0;color:var(--muted);font-size:clamp(.95rem,1.4vw,1.08rem);max-width:60ch;}"
+        ".commands{margin-top:14px;border:1px dashed rgba(255,255,255,.18);border-radius:12px;padding:10px 12px;color:#b8c0d0;font-size:13px;background:rgba(255,255,255,.02);}"
+        ".commands code{color:var(--accent-2);font-weight:600;}"
+        ".goal-wrap{margin-top:16px;}"
+        ".goal-label{display:block;color:#d8deea;font-weight:600;margin-bottom:8px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;}"
+        ".control{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(4,8,16,.7);color:var(--text);outline:none;}"
+        ".control:focus{border-color:var(--accent-2);box-shadow:0 0 0 3px rgba(134,169,255,.22);}"
+        ".facts-grid{margin-top:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;}"
+        ".fact-card{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--panel);}"
+        ".fact-label{display:block;margin:0 0 8px;color:#d8deea;font-size:14px;font-weight:700;line-height:1.3;}"
+        ".fact-help{margin:8px 0 0;color:var(--muted);line-height:1.45;font-size:13px;}"
+        ".actions{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;}"
+        ".btn{color:#041318;background:linear-gradient(90deg,var(--accent),#b9ffe6);padding:11px 16px;border-radius:12px;font-weight:800;font-size:14px;border:1px solid rgba(255,255,255,.08);cursor:pointer;}"
+        ".hint{color:#8d95a6;font-size:13px;}"
+        ".result{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}"
+        ".result-title{margin:0 0 10px;font-size:1.1rem;}"
+        ".score{display:inline-block;border-radius:999px;background:rgba(119,247,209,.12);border:1px solid rgba(119,247,209,.28);color:var(--accent);padding:4px 10px;margin-left:8px;font-size:.85rem;}"
+        ".result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;}"
+        ".card{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--panel);}"
+        ".card h3{margin:0 0 8px;font-size:14px;color:#d8deea;text-transform:uppercase;letter-spacing:.06em;}"
+        ".list{margin:0;padding-left:18px;color:var(--muted);}"
+        ".list li{margin-bottom:8px;line-height:1.45;}"
+        "</style></head><body><main class='shell'><section class='hero'>"
+        "<div class='badge'>Live Diagnostic Interface</div>"
+        "<h1>NetSage Network Diagnosis</h1>"
+        "<p class='lead'>Diagnose LAN and WAN issues with certainty-factor reasoning. Fill known facts and run targeted inference for your selected end goal.</p>"
+        "<div class='commands'>Goals: <code>no_internet</code> · <code>dns_failure</code> · <code>wifi_congestion</code> · <code>isp_outage</code></div>"
         "<form method='POST' action='/diagnose'>"
         "<div class='goal-wrap'><label class='goal-label'>Primary Goal</label>"
-        f"<input name='goal' class='control' value='{escape(goal)}' /></div>"
+        f"<select name='goal' class='control'>{''.join(goal_options)}</select></div>"
         f"<section class='facts-grid'>{''.join(fields)}</section>"
-        "<div class='actions'><button class='btn' type='submit'>Run Diagnosis</button>"
-        "<span class='hint'>Tip: Start with facts you already know.</span></div></form>"
-        f"{result_html}</section></main>"
-        "</body></html>"
+        "<div class='actions'><button class='btn' type='submit'>Run Diagnosis</button><span class='hint'>Leave unknown values blank.</span></div></form>"
+        f"{result_html}"
+        "</section></main></body></html>"
     )
 
 
@@ -486,6 +496,18 @@ def run_web_app(args: argparse.Namespace) -> None:
                 gateway_ok = system.facts["gateway_ping"]["value"]
                 system.set_fact("no_gateway_ping", not gateway_ok, 1.0)
 
+            available_goals = [str(item) for item in system.kb.get("goals", [])]
+            if goal not in available_goals:
+                goal_list = ", ".join(escape(item) for item in available_goals)
+                error_html = (
+                    "<section class='result'>"
+                    f"<h2 class='result-title'>Unknown goal: {escape(goal)}</h2>"
+                    f"<p class='hint'>Choose one of: {goal_list}</p>"
+                    "</section>"
+                )
+                self._send_html(_render_web_form(system, goal="no_internet", result_html=error_html, current_values=current_values))
+                return
+
             top = system.evaluate(goal)
             scores = system.infer_all()
 
@@ -526,6 +548,7 @@ def main() -> None:
     parser.add_argument("--gateway-ip", default="192.168.1.1")
     parser.add_argument("--dns-ip", default="8.8.8.8")
     parser.add_argument("--goal", default="no_internet", help="Primary diagnosis goal for --demo mode")
+    parser.add_argument("--list-goals", action="store_true", help="List all supported diagnosis goals and exit")
     parser.add_argument("--web", action="store_true", help="Run a local web form for diagnosis")
     parser.add_argument("--host", default="127.0.0.1", help="Web host used with --web")
     parser.add_argument("--port", type=int, default=8000, help="Web port used with --web")
@@ -538,11 +561,21 @@ def main() -> None:
     parser.add_argument("--demo", action="store_true", help="Run deterministic demo scenario")
     args = parser.parse_args()
 
+    system = ExpertSystem(Path(args.rules), Path(args.questions), args.gateway_ip, args.dns_ip)
+
+    available_goals = [str(item) for item in system.kb.get("goals", [])]
+    if args.list_goals:
+        print("Available diagnosis goals:")
+        for item in available_goals:
+            print(f"- {item}")
+        return
+
+    if args.goal not in available_goals:
+        parser.error(f"--goal must be one of: {', '.join(available_goals)}")
+
     if args.web:
         run_web_app(args)
         return
-
-    system = ExpertSystem(Path(args.rules), Path(args.questions), args.gateway_ip, args.dns_ip)
 
     if args.demo:
         system.set_fact("gateway_ping", True)
