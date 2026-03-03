@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """NetSage CLI: recursive backward-chaining LAN diagnosis with certainty factors."""
 
 from __future__ import annotations
