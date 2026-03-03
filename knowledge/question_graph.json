@@ -1,0 +1,78 @@
+{
+  "facts": [
+    {
+      "fact": "no_gateway_ping",
+      "question": "Can you ping the default gateway? (yes/no)",
+      "type": "boolean_inverted",
+      "importance": 0.95,
+      "related_rules": ["R1"],
+      "auto_probe": "gateway_ping"
+    },
+    {
+      "fact": "gateway_ping",
+      "question": "Can you ping the default gateway? (yes/no)",
+      "type": "boolean",
+      "importance": 0.9,
+      "related_rules": ["R3", "R5", "R6"],
+      "auto_probe": "gateway_ping"
+    },
+    {
+      "fact": "dns_reachable",
+      "question": "Is DNS server reachable? (yes/no)",
+      "type": "boolean",
+      "importance": 0.8,
+      "related_rules": ["R3"],
+      "auto_probe": "dns_reachable"
+    },
+    {
+      "fact": "interface_status",
+      "question": "What is the interface status? (up/down)",
+      "type": "choice",
+      "choices": ["up", "down"],
+      "importance": 0.8,
+      "related_rules": ["R5"],
+      "auto_probe": "interface_status"
+    },
+    {
+      "fact": "device_ping",
+      "question": "Can you ping the target LAN device? (yes/no)",
+      "type": "boolean",
+      "importance": 0.7,
+      "related_rules": ["R6"]
+    },
+    {
+      "fact": "latency_ms",
+      "question": "Average latency in milliseconds?",
+      "type": "numeric",
+      "importance": 0.7,
+      "related_rules": ["R4"],
+      "fuzzy": {
+        "derive": {
+          "high_latency": [
+            {"lte": 30, "cf": 0.0},
+            {"lte": 100, "cf": 0.3},
+            {"lte": 500, "cf": 0.6},
+            {"gt": 500, "cf": 1.0}
+          ]
+        }
+      }
+    },
+    {
+      "fact": "interference_dbm",
+      "question": "Channel interference level in dBm (less negative is worse, e.g. -60)?",
+      "type": "numeric",
+      "importance": 0.65,
+      "related_rules": ["R4"],
+      "fuzzy": {
+        "derive": {
+          "high_interference": [
+            {"lte": -90, "cf": 0.1},
+            {"lte": -75, "cf": 0.4},
+            {"lte": -65, "cf": 0.7},
+            {"gt": -65, "cf": 1.0}
+          ]
+        }
+      }
+    }
+  ]
+}
