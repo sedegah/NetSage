@@ -1,0 +1,88 @@
+{
+  "goals": [
+    "no_internet",
+    "router_down",
+    "dns_failure",
+    "wifi_congestion",
+    "gateway_issue",
+    "endpoint_offline"
+  ],
+  "rules": [
+    {
+      "id": "R1",
+      "if": [
+        { "fact": "no_gateway_ping", "op": "==", "value": true }
+      ],
+      "then": "router_down",
+      "cf": 0.95,
+      "explanation": "Gateway does not respond, indicating likely router outage."
+    },
+    {
+      "id": "R2",
+      "if": [
+        { "fact": "router_down", "op": ">=", "value": 0.7 }
+      ],
+      "then": "no_internet",
+      "cf": 0.9,
+      "explanation": "When router is likely down, internet outage is highly probable."
+    },
+    {
+      "id": "R3",
+      "if": [
+        { "fact": "dns_reachable", "op": "==", "value": false },
+        { "fact": "gateway_ping", "op": "==", "value": true }
+      ],
+      "then": "dns_failure",
+      "cf": 0.85,
+      "explanation": "Gateway is reachable while DNS is not, indicating DNS path/service failure."
+    },
+    {
+      "id": "R4",
+      "if": [
+        { "fact": "high_interference", "op": ">=", "value": 0.6 },
+        { "fact": "high_latency", "op": ">=", "value": 0.6 }
+      ],
+      "then": "wifi_congestion",
+      "cf": 0.8,
+      "explanation": "High RF interference and high latency jointly indicate Wi-Fi congestion."
+    },
+    {
+      "id": "R5",
+      "if": [
+        { "fact": "gateway_ping", "op": "==", "value": false },
+        { "fact": "interface_status", "op": "==", "value": "up" }
+      ],
+      "then": "gateway_issue",
+      "cf": 0.8,
+      "explanation": "Interface is up but default gateway is unreachable, pointing to gateway/routing issue."
+    },
+    {
+      "id": "R6",
+      "if": [
+        { "fact": "device_ping", "op": "==", "value": false },
+        { "fact": "gateway_ping", "op": "==", "value": true }
+      ],
+      "then": "endpoint_offline",
+      "cf": 0.75,
+      "explanation": "Gateway responds while endpoint does not, indicating endpoint unavailability."
+    },
+    {
+      "id": "R7",
+      "if": [
+        { "fact": "dns_failure", "op": ">=", "value": 0.6 }
+      ],
+      "then": "no_internet",
+      "cf": 0.8,
+      "explanation": "Significant DNS failure evidence strongly contributes to internet outage."
+    },
+    {
+      "id": "R8",
+      "if": [
+        { "fact": "wifi_congestion", "op": ">=", "value": 0.6 }
+      ],
+      "then": "no_internet",
+      "cf": 0.65,
+      "explanation": "Severe Wi-Fi congestion can manifest as perceived internet outage."
+    }
+  ]
+}
