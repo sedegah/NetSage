@@ -5,7 +5,10 @@
     "dns_failure",
     "wifi_congestion",
     "gateway_issue",
-    "endpoint_offline"
+    "endpoint_offline",
+    "wan_link_issue",
+    "isp_outage",
+    "wan_packet_loss"
   ],
   "rules": [
     {
@@ -15,6 +18,7 @@
       ],
       "then": "router_down",
       "cf": 0.95,
+      "weight": 1.0,
       "explanation": "Gateway does not respond, indicating likely router outage."
     },
     {
@@ -24,6 +28,7 @@
       ],
       "then": "no_internet",
       "cf": 0.9,
+      "weight": 1.0,
       "explanation": "When router is likely down, internet outage is highly probable."
     },
     {
@@ -34,6 +39,7 @@
       ],
       "then": "dns_failure",
       "cf": 0.85,
+      "weight": 1.0,
       "explanation": "Gateway is reachable while DNS is not, indicating DNS path/service failure."
     },
     {
@@ -44,6 +50,7 @@
       ],
       "then": "wifi_congestion",
       "cf": 0.8,
+      "weight": 0.95,
       "explanation": "High RF interference and high latency jointly indicate Wi-Fi congestion."
     },
     {
@@ -54,6 +61,7 @@
       ],
       "then": "gateway_issue",
       "cf": 0.8,
+      "weight": 1.0,
       "explanation": "Interface is up but default gateway is unreachable, pointing to gateway/routing issue."
     },
     {
@@ -64,6 +72,7 @@
       ],
       "then": "endpoint_offline",
       "cf": 0.75,
+      "weight": 0.95,
       "explanation": "Gateway responds while endpoint does not, indicating endpoint unavailability."
     },
     {
@@ -73,6 +82,7 @@
       ],
       "then": "no_internet",
       "cf": 0.8,
+      "weight": 1.0,
       "explanation": "Significant DNS failure evidence strongly contributes to internet outage."
     },
     {
@@ -82,7 +92,91 @@
       ],
       "then": "no_internet",
       "cf": 0.65,
+      "weight": 0.9,
       "explanation": "Severe Wi-Fi congestion can manifest as perceived internet outage."
+    },
+    {
+      "id": "R9",
+      "if": [
+        { "fact": "modem_online", "op": "==", "value": false }
+      ],
+      "then": "wan_link_issue",
+      "cf": 0.9,
+      "weight": 1.0,
+      "explanation": "Modem is offline, indicating the WAN handoff is likely down."
+    },
+    {
+      "id": "R10",
+      "if": [
+        { "fact": "modem_online", "op": "==", "value": true },
+        { "fact": "public_ip_assigned", "op": "==", "value": false }
+      ],
+      "then": "wan_link_issue",
+      "cf": 0.85,
+      "weight": 0.95,
+      "explanation": "Modem is online but has no public IP lease, suggesting WAN provisioning/link issue."
+    },
+    {
+      "id": "R11",
+      "if": [
+        { "fact": "isp_status_outage", "op": "==", "value": true }
+      ],
+      "then": "isp_outage",
+      "cf": 0.9,
+      "weight": 1.0,
+      "explanation": "ISP status indicates an active outage in your area."
+    },
+    {
+      "id": "R12",
+      "if": [
+        { "fact": "high_packet_loss", "op": ">=", "value": 0.6 },
+        { "fact": "gateway_ping", "op": "==", "value": true }
+      ],
+      "then": "wan_packet_loss",
+      "cf": 0.8,
+      "weight": 0.9,
+      "explanation": "High packet loss beyond the gateway points to upstream WAN instability."
+    },
+    {
+      "id": "R13",
+      "if": [
+        { "fact": "traceroute_stops_at_isp", "op": "==", "value": true },
+        { "fact": "gateway_ping", "op": "==", "value": true }
+      ],
+      "then": "isp_outage",
+      "cf": 0.85,
+      "weight": 0.95,
+      "explanation": "Traceroute dying inside ISP network while gateway is fine suggests upstream ISP fault."
+    },
+    {
+      "id": "R14",
+      "if": [
+        { "fact": "wan_link_issue", "op": ">=", "value": 0.6 }
+      ],
+      "then": "no_internet",
+      "cf": 0.88,
+      "weight": 1.0,
+      "explanation": "Confirmed WAN link issues strongly imply internet outage."
+    },
+    {
+      "id": "R15",
+      "if": [
+        { "fact": "isp_outage", "op": ">=", "value": 0.6 }
+      ],
+      "then": "no_internet",
+      "cf": 0.9,
+      "weight": 1.0,
+      "explanation": "An ISP outage directly contributes to loss of internet connectivity."
+    },
+    {
+      "id": "R16",
+      "if": [
+        { "fact": "wan_packet_loss", "op": ">=", "value": 0.6 }
+      ],
+      "then": "no_internet",
+      "cf": 0.75,
+      "weight": 0.9,
+      "explanation": "Severe upstream packet loss can make internet access unusable."
     }
   ]
 }

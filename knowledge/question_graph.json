@@ -5,6 +5,7 @@
       "question": "Can you ping the default gateway? (yes/no)",
       "type": "boolean_inverted",
       "importance": 0.95,
+      "user_explanation": "This checks whether your device can reach your local router. If not, internet usually cannot work.",
       "related_rules": ["R1"],
       "auto_probe": "gateway_ping"
     },
@@ -13,7 +14,8 @@
       "question": "Can you ping the default gateway? (yes/no)",
       "type": "boolean",
       "importance": 0.9,
-      "related_rules": ["R3", "R5", "R6"],
+      "user_explanation": "If the gateway responds, your local network is likely alive and the problem may be upstream.",
+      "related_rules": ["R3", "R5", "R6", "R12", "R13"],
       "auto_probe": "gateway_ping"
     },
     {
@@ -21,6 +23,7 @@
       "question": "Is DNS server reachable? (yes/no)",
       "type": "boolean",
       "importance": 0.8,
+      "user_explanation": "DNS translates website names to IP addresses. If DNS is down, browsing appears broken.",
       "related_rules": ["R3"],
       "auto_probe": "dns_reachable"
     },
@@ -30,6 +33,7 @@
       "type": "choice",
       "choices": ["up", "down"],
       "importance": 0.8,
+      "user_explanation": "This tells whether your network adapter is active. 'down' means local link is not ready.",
       "related_rules": ["R5"],
       "auto_probe": "interface_status"
     },
@@ -38,6 +42,7 @@
       "question": "Can you ping the target LAN device? (yes/no)",
       "type": "boolean",
       "importance": 0.7,
+      "user_explanation": "If only one device is unreachable while the gateway works, that device may be offline.",
       "related_rules": ["R6"]
     },
     {
@@ -45,6 +50,7 @@
       "question": "Average latency in milliseconds?",
       "type": "numeric",
       "importance": 0.7,
+      "user_explanation": "Higher latency means packets take longer to travel, which often indicates congestion.",
       "related_rules": ["R4"],
       "fuzzy": {
         "derive": {
@@ -62,6 +68,7 @@
       "question": "Channel interference level in dBm (less negative is worse, e.g. -60)?",
       "type": "numeric",
       "importance": 0.65,
+      "user_explanation": "Wi-Fi interference from nearby networks/devices causes unstable and slow wireless performance.",
       "related_rules": ["R4"],
       "fuzzy": {
         "derive": {
@@ -73,6 +80,56 @@
           ]
         }
       }
+    },
+    {
+      "fact": "modem_online",
+      "question": "Is the modem/ONT online? (yes/no)",
+      "type": "boolean",
+      "importance": 0.9,
+      "user_explanation": "If the modem is offline, your connection to the ISP is usually unavailable.",
+      "related_rules": ["R9", "R10"]
+    },
+    {
+      "fact": "public_ip_assigned",
+      "question": "Does the WAN interface have a public IP assigned? (yes/no)",
+      "type": "boolean",
+      "importance": 0.85,
+      "user_explanation": "No public IP often means your modem/router is not successfully connected to ISP provisioning.",
+      "related_rules": ["R10"]
+    },
+    {
+      "fact": "isp_status_outage",
+      "question": "Does your ISP status page report an outage in your area? (yes/no)",
+      "type": "boolean",
+      "importance": 0.8,
+      "user_explanation": "If the ISP confirms an outage, local troubleshooting usually won't restore service immediately.",
+      "related_rules": ["R11"]
+    },
+    {
+      "fact": "packet_loss_pct",
+      "question": "Observed packet loss percentage to an internet host?",
+      "type": "numeric",
+      "importance": 0.8,
+      "user_explanation": "Packet loss means dropped data packets; high values often cause slow or broken internet apps.",
+      "related_rules": ["R12"],
+      "fuzzy": {
+        "derive": {
+          "high_packet_loss": [
+            {"lte": 1, "cf": 0.1},
+            {"lte": 3, "cf": 0.3},
+            {"lte": 8, "cf": 0.6},
+            {"gt": 8, "cf": 1.0}
+          ]
+        }
+      }
+    },
+    {
+      "fact": "traceroute_stops_at_isp",
+      "question": "Does traceroute stop inside your ISP network? (yes/no)",
+      "type": "boolean",
+      "importance": 0.75,
+      "user_explanation": "If traceroute dies in the ISP path, the issue is likely outside your home LAN.",
+      "related_rules": ["R13"]
     }
   ]
 }
