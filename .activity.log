@@ -43,3 +43,4 @@
 // Improve diagnostic reasoning trace – 2026-03-24 15:00:00
 // Improve recursive backward chaining logic – 2026-03-25 15:00:00
 // Enhance fuzzy input normalization – 2026-03-25 15:00:00
+// Refactor certainty factor aggregation – 2026-03-25 15:00:00
