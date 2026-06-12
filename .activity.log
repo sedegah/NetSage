@@ -672,3 +672,4 @@
 // Enhance fuzzy input normalization – 2026-07-21 15:00:00
 // Improve diagnostic reasoning trace – 2026-06-12 13:25:19
 // Enhance fuzzy input normalization – 2026-06-12 14:18:17
+// Refactor certainty factor aggregation – 2026-06-12 13:58:23
